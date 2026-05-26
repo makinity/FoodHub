@@ -1,6 +1,8 @@
 import { Head, router } from '@inertiajs/react';
 import AdminLayout from '@/layouts/AdminLayout';
 import { useState, useRef, useMemo } from 'react';
+import { useSnackbar } from '@/contexts/SnackbarContext';
+import ConfirmModal from '@/components/ConfirmModal';
 
 interface Category { id: number; name: string; }
 interface Food { id: number; name: string; description: string; price: number; image_url: string; category_id: number; is_available: boolean; stock: number; category?: Category; }
@@ -17,6 +19,8 @@ export default function Foods({ foods, categories }: Props) {
     const fileRef = useRef<HTMLInputElement>(null);
     const [search, setSearch] = useState('');
     const [filterCategory, setFilterCategory] = useState('');
+    const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+    const { showSnackbar } = useSnackbar();
 
     const filteredFoods = useMemo(() => {
         return foods.filter(f => {
@@ -66,7 +70,8 @@ export default function Foods({ foods, categories }: Props) {
     };
 
     const deleteFood = (id: number) => {
-        if (confirm('Delete this food item?')) router.delete(`/admin/foods/${id}`);
+        router.delete(`/admin/foods/${id}`, { preserveScroll: true });
+        setConfirmDelete(null);
     };
 
     return (
@@ -95,16 +100,13 @@ export default function Foods({ foods, categories }: Props) {
                             <tr>
                                 <th className="px-4 py-3 font-medium text-gray-500">Image</th>
                                 <th className="px-4 py-3 font-medium text-gray-500">Name</th>
-                                <th className="px-4 py-3 font-medium text-gray-500">Category</th>
-                                <th className="px-4 py-3 font-medium text-gray-500">Price</th>
-                                <th className="px-4 py-3 font-medium text-gray-500">Stock</th>
                                 <th className="px-4 py-3 font-medium text-gray-500">Status</th>
                                 <th className="px-4 py-3 font-medium text-gray-500">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredFoods.length === 0 ? (
-                                <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">No food items found</td></tr>
+                                <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-400">No food items found</td></tr>
                             ) : filteredFoods.map(food => (
                                 <tr key={food.id} className="border-b border-gray-100 dark:border-gray-700">
                                     <td className="px-4 py-3">
@@ -117,9 +119,6 @@ export default function Foods({ foods, categories }: Props) {
                                         </div>
                                     </td>
                                     <td className="px-4 py-3 font-medium dark:text-white">{food.name}</td>
-                                    <td className="px-4 py-3 text-gray-500">{food.category?.name || '-'}</td>
-                                    <td className="px-4 py-3 dark:text-gray-300">₱{Number(food.price).toLocaleString()}</td>
-                                    <td className="px-4 py-3 dark:text-gray-300">{food.stock}</td>
                                     <td className="px-4 py-3">
                                         <span className={`rounded-full px-2 py-1 text-xs font-medium ${food.is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                             {food.is_available ? 'Available' : 'Unavailable'}
@@ -133,7 +132,7 @@ export default function Foods({ foods, categories }: Props) {
                                             <button onClick={() => openEdit(food)} title="Edit" className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-orange-600 dark:hover:bg-gray-700">
                                                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                             </button>
-                                            <button onClick={() => deleteFood(food.id)} title="Delete" className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-red-600 dark:hover:bg-gray-700">
+                                            <button onClick={() => setConfirmDelete(food.id)} title="Delete" className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-red-600 dark:hover:bg-gray-700">
                                                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                             </button>
                                         </div>
@@ -272,6 +271,7 @@ export default function Foods({ foods, categories }: Props) {
                     </div>
                 </div>
             )}
+            <ConfirmModal open={confirmDelete !== null} title="Delete Food" message="Are you sure you want to delete this food item?" onConfirm={() => deleteFood(confirmDelete!)} onCancel={() => setConfirmDelete(null)} />
         </AdminLayout>
     );
 }

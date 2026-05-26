@@ -16,7 +16,7 @@ class PageController extends Controller
     public function menu()
     {
         return inertia('Public/Menu', [
-            'foods' => MenuItem::latest()->get(),
+            'foods' => MenuItem::orderBy('id', 'desc')->get(),
             'categories' => Category::all(),
         ]);
     }

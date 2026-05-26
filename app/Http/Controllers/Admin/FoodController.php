@@ -13,7 +13,7 @@ class FoodController extends Controller
     public function index()
     {
         return inertia('Admin/Foods', [
-            'foods' => MenuItem::with('category')->latest()->get(),
+            'foods' => MenuItem::with('category')->orderBy('id', 'desc')->get(),
             'categories' => Category::all(),
         ]);
     }

@@ -12,7 +12,7 @@ class CategoryController extends Controller
     public function index()
     {
         return inertia('Admin/Categories', [
-            'categories' => Category::withCount('menuItems')->latest()->get(),
+            'categories' => Category::withCount('menuItems')->orderBy('id', 'desc')->get(),
         ]);
     }
 
