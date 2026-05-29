@@ -8,6 +8,7 @@
     @inertiaHead
 </head>
 <body>
+    {{-- test --}}
     @inertia
 </body>
 </html>
